@@ -1,52 +1,49 @@
-# ---------------------------------------------------------
-
 # Melbourne Bioinformatics Training Program
 
-# This exercise to assess your familiarity with R and git. Please follow
-# the instructions on the README page and link to your repo in your application.
-# If you do not link to your repo, your application will be automatically denied.
+library(tidyverse)
 
-# Leave all code you used in this R script with comments as appropriate.
-# Let us know if you have any questions!
+# ---- Load data ----
+expr_path <- "data/GSE60450_GeneLevel_Normalized(CPM.and.TMM)_data.csv"
+meta_path <- "data/GSE60450_filtered_metadata.csv"
 
+expr <- read_csv(expr_path, show_col_types = FALSE)
+meta <- read_csv(meta_path, show_col_types = FALSE)
 
-# You can use the resources available on our training website for help:
-# Intro to R: https://mbite.org/intro-to-r
-# Version Control with Git: https://mbite.org/intro-to-git/
+# Fix column names (first col is gene_id / sample_id because header is blank)
+expr <- expr %>% rename(ensembl_id = 1, gene_symbol = 2)
+meta <- meta %>% rename(sample_id = 1,
+                        characteristics = 2,
+                        immunophenotype = 3,
+                        developmental_stage = 4)
 
-# ----------------------------------------------------------
+# ---- Inspect ----
+dim(expr)
+dim(meta)
 
-# Load libraries -------------------
-# You may use base R or tidyverse for this exercise
+# ---- Plot expression by cell type ----
+gene_of_interest <- "Klf6"   # 你也可以改成 "Gnai3" 等
 
-# ex. library(tidyverse)
+gene_df <- expr %>%
+  filter(gene_symbol == gene_of_interest) %>%
+  pivot_longer(cols = -c(ensembl_id, gene_symbol),
+               names_to = "sample_id",
+               values_to = "expression") %>%
+  left_join(meta, by = "sample_id")
 
-# Load data here ----------------------
-# Load each file with a meaningful variable name.
+stopifnot(nrow(gene_df) > 0)
 
+p <- ggplot(gene_df, aes(x = immunophenotype, y = log2(expression + 1))) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.12, height = 0, alpha = 0.7) +
+  labs(title = paste0(gene_of_interest, " expression by cell type"),
+       x = "Cell type (immunophenotype)",
+       y = "log2(CPM + 1)  (TMM normalized)") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
 
+dir.create("results", showWarnings = FALSE)
+out_file <- file.path("results", paste0(gene_of_interest, "_expression_by_celltype.png"))
+ggsave(out_file, plot = p, width = 7, height = 4.5, dpi = 300)
 
-# Inspect the data -------------------------
+out_file
 
-# What are the dimensions of each data set? (How many rows/columns in each?)
-# Keep the code here for each file.
-
-## Expression data
-
-
-## Metadata
-
-
-# Prepare/combine the data for plotting ------------------------
-# How can you combine this data into one data.frame?
-
-
-
-# Plot the data --------------------------
-## Plot the expression by cell type
-## Can use boxplot() or geom_boxplot() in ggplot2
-
-
-
-## Save the plot
-### Show code for saving the plot with ggsave() or a similar function
