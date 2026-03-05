@@ -1,27 +1,21 @@
-# Melbourne Bioinformatics Training Program
-
 library(tidyverse)
 
-# ---- Load data ----
 expr_path <- "data/GSE60450_GeneLevel_Normalized(CPM.and.TMM)_data.csv"
 meta_path <- "data/GSE60450_filtered_metadata.csv"
 
 expr <- read_csv(expr_path, show_col_types = FALSE)
 meta <- read_csv(meta_path, show_col_types = FALSE)
 
-# Fix column names (first col is gene_id / sample_id because header is blank)
 expr <- expr %>% rename(ensembl_id = 1, gene_symbol = 2)
 meta <- meta %>% rename(sample_id = 1,
                         characteristics = 2,
                         immunophenotype = 3,
                         developmental_stage = 4)
 
-# ---- Inspect ----
 dim(expr)
 dim(meta)
 
-# ---- Plot expression by cell type ----
-gene_of_interest <- "Klf6"   # 你也可以改成 "Gnai3" 等
+gene_of_interest <- "Klf6"   
 
 gene_df <- expr %>%
   filter(gene_symbol == gene_of_interest) %>%
